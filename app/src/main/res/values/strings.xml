@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">AURA Companion</string>
+    <string name="service_description">Optional local screen context parser for AURA. Sensitive fields are ignored and redacted before the overlay sees text.</string>
+</resources>

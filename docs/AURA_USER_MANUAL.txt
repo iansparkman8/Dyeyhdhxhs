@@ -1,0 +1,256 @@
+AURA SYSTEM COMPANION — COMPLETE USER MANUAL
+Version 1.0 | Production Release | 2026
+
+═══════════════════════════════════════════════════════════════════
+TABLE OF CONTENTS
+═══════════════════════════════════════════════════════════════════
+
+1. Introduction
+2. Installation Guide
+3. User Interface & Gestures
+4. State Machine & API Reference
+5. Asset Reference
+6. ReAct Agent Backend
+7. Developer Guide
+8. Troubleshooting
+9. Changelog & Roadmap
+
+═══════════════════════════════════════════════════════════════════
+1. INTRODUCTION
+═══════════════════════════════════════════════════════════════════
+
+AURA is a system-wide AI companion that lives on your Android device.
+She floats over every app, reads screen context, and responds with
+proactive assistance, emotional support, or simply ambient presence.
+
+CORE CAPABILITIES:
+• Screen Context Awareness — reads text from any app via AccessibilityService
+• State-Based Behavior — transitions between idle, thinking, and active modes
+• Proactive Assistance — suggests actions before you ask
+• Emotional Intelligence — detects sentiment and responds appropriately
+• Persistent Presence — stays visible across all apps via WindowManager overlay
+
+ARCHITECTURE:
+
+    Android Device
+    ├─ AURA Overlay (WindowManager)
+    │   ├─ Jetpack Compose Canvas (iridescent aura + kinetic wings)
+    │   └─ Drag & touch handling
+    ├─ AURA Screen Parser (AccessibilityService)
+    │   └─ Extracts text → broadcasts context
+    └─ AURA ReAct Agent (Python backend)
+        ├─ Reasoning loop (Thought → Action → Observation)
+        ├─ Tool registry (calendar, messages, navigation)
+        └─ Structured output → state + dialogue + asset
+
+═══════════════════════════════════════════════════════════════════
+2. INSTALLATION GUIDE
+═══════════════════════════════════════════════════════════════════
+
+METHOD A: Pre-Built APK (Fastest)
+1. Download app-release-signed.apk from GitHub Releases
+2. Transfer to Android device
+3. Tap file → allow "Unknown sources"
+4. Open app → tap "Boot AURA System Engine"
+
+METHOD B: GitHub Actions CI/CD
+1. Fork github.com/YOUR_USERNAME/aura-companion
+2. Push fairy images to app/src/main/res/drawable/
+3. GitHub Actions auto-builds APK in ~5 minutes
+4. Download from Actions → Artifacts → aura-release-apk
+
+METHOD C: Android Studio
+1. Extract aura_android_project.zip
+2. File → Open → Select project
+3. Add images to app/src/main/res/drawable/
+4. Build → Build APK(s)
+
+REQUIRED PERMISSIONS (Grant Manually):
+1. Display over other apps → Settings → Apps → AURA → Allow
+2. Accessibility Service → Settings → Accessibility → AURA Screen Parser → ON
+3. Battery Optimization → Settings → Apps → AURA → Unrestricted
+
+═══════════════════════════════════════════════════════════════════
+3. USER INTERFACE & GESTURES
+═══════════════════════════════════════════════════════════════════
+
+GESTURE              ACTION
+─────────────────────────────────────────────────────────────────
+TAP (Single)         Opens chat interface → FOCUSED_ASSIST state
+DOUBLE-TAP           Triggers magic particle burst (25 particles)
+LONG-PRESS / DRAG    Move fairy to any position + trail effects
+SWIPE UP (bottom)    Opens settings panel
+SHAKE DEVICE         Triggers magic via accelerometer
+KEYBOARD ESC         Closes chat/settings/code panel
+KEYBOARD Ctrl+S      Opens settings panel
+
+CHAT INTERFACE:
+• Glass-morphism panel with blur backdrop
+• Gradient user messages (cyan → purple)
+• Dark AI messages with border
+• Typing indicator (3 animated dots)
+• Voice input support (SpeechRecognition API)
+• Persistent message history (localStorage)
+
+PERSONALITIES:
+• adaptive    — Context-aware, switches tone based on situation
+• cheerful    — Bubbly, energetic, uses emojis
+• mysterious  — Wise, cryptic, philosophical
+• sassy       — Playful, sarcastic, confident
+• gentle      — Calm, caring, supportive
+
+═══════════════════════════════════════════════════════════════════
+4. STATE MACHINE & API REFERENCE
+═══════════════════════════════════════════════════════════════════
+
+STATE           ASSET              GLOW      BEHAVIOR
+─────────────────────────────────────────────────────────────────
+AMBIENT_HOVER   1554.jpg / 1557.jpg  0.3     Passive floating, low glow
+THINKING        1528.png / 1527.png  0.6     Processing shake, purple aura
+FOCUSED_ASSIST  1552.jpg / 1559.jpg  0.8     Active help, high glow, dialogue
+
+TRANSITIONS:
+• AMBIENT → THINKING: Context detected (schedule, message, document)
+• THINKING → FOCUSED: High-priority context confirmed (names, events)
+• FOCUSED → AMBIENT: Context resolved or user dismisses
+• ANY → CHAT: User taps fairy
+• CHAT → AMBIENT: User closes chat
+
+WEBSOCKET API (Android ↔ Python Backend):
+
+Request:
+{
+  "screen_context": "User viewing calendar...",
+  "user_message": "Help me plan tomorrow",
+  "personality": "adaptive"
+}
+
+Response:
+{
+  "state": "FOCUSED_ASSIST",
+  "dialogue": "I noticed you're looking at the schedule...",
+  "asset": "1552.jpg",
+  "magic": false,
+  "confidence": 0.85,
+  "tool_calls": [
+    {"tool": "check_calendar", "input": {}}
+  ]
+}
+
+═══════════════════════════════════════════════════════════════════
+5. ASSET REFERENCE
+═══════════════════════════════════════════════════════════════════
+
+ASSET              STATE           SIZE      FORMAT    TRANSPARENCY
+─────────────────────────────────────────────────────────────────
+1554.jpg           AMBIENT_HOVER   238 KB    JPEG      No
+1557.jpg           AMBIENT_HOVER   226 KB    JPEG      No
+1528.png           THINKING        849 KB    PNG       Yes
+1527.png           THINKING        496 KB    PNG       Yes
+1552.jpg           FOCUSED_ASSIST  242 KB    JPEG      No
+1559.jpg           FOCUSED_ASSIST  203 KB    JPEG      No
+1558.jpg           BOOT SCREEN     210 KB    JPEG      No
+
+ANDROID DRAWABLE MAPPING:
+1554.jpg → res/drawable/aura_ambient_pose.jpg
+1552.jpg → res/drawable/aura_cyber_focused.jpg
+1528.png → res/drawable/aura_hover_frame_1.png
+
+═══════════════════════════════════════════════════════════════════
+6. REACT AGENT BACKEND
+═══════════════════════════════════════════════════════════════════
+
+The Python backend implements a ReAct (Reasoning + Acting) loop:
+
+1. THOUGHT: Analyze screen context + user message
+2. ACTION: Select tool (check_calendar, send_message, etc.)
+3. OBSERVATION: Receive tool result
+4. ... (repeat up to 5 iterations)
+5. FINAL: Generate structured output for Android
+
+TOOLS:
+• parse_screen         — Extract entities from screen text
+• check_calendar       — Query calendar events
+• send_message         — Draft message to recipient
+• set_reminder         — Create reminder with time
+• navigate             — Get route to destination
+• search               — Search for information
+• emotional_support    — Provide sentiment-appropriate response
+
+═══════════════════════════════════════════════════════════════════
+7. DEVELOPER GUIDE
+═══════════════════════════════════════════════════════════════════
+
+FILE STRUCTURE:
+app/
+├── src/main/
+│   ├── AndroidManifest.xml
+│   ├── java/com/companion/aura/
+│   │   ├── MainActivity.kt
+│   │   ├── AuraOverlayService.kt
+│   │   ├── AuraScreenParserService.kt
+│   │   └── AuraCompanionUI.kt
+│   └── res/
+│       ├── drawable/ (fairy images)
+│       ├── values/strings.xml
+│       └── xml/accessibility_service_config.xml
+└── build.gradle.kts
+
+GITHUB ACTIONS CI/CD:
+• Auto-builds on every push to main
+• Generates debug + release APKs
+• Signs release with keystore (if secrets configured)
+• Publishes to GitHub Releases
+
+═══════════════════════════════════════════════════════════════════
+8. TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════════
+
+ISSUE                          SOLUTION
+─────────────────────────────────────────────────────────────────
+Fairy not appearing            Grant "Display over other apps"
+Accessibility not detecting    Toggle OFF then ON in Settings
+Assets not loading             Verify drawable names (case-sensitive)
+Service killed by OS           Add FOREGROUND_SERVICE + notification
+Chat not opening               Check tap event interception
+Magic not working              Shake harder (>25 accelerometer delta)
+Voice not speaking             Enable Voice Output in settings
+Web preview broken             Open aura_final.html directly
+Build fails                    Verify compose = true in build.gradle.kts
+
+═══════════════════════════════════════════════════════════════════
+9. CHANGELOG & ROADMAP
+═══════════════════════════════════════════════════════════════════
+
+v1.0 — Production Release
+• Jetpack Compose Canvas rendering
+• AccessibilityService screen parsing
+• WindowManager overlay
+• 3-state machine
+• Web preview with embedded assets
+• GitHub Actions CI/CD
+• ReAct Python backend
+
+v1.1 — Planned
+• Multi-node supervisor topology
+• On-device LLM (Gemini Nano, Llama.cpp)
+• Voice wake-word detection
+• Custom avatar upload
+• Widget mode
+
+v2.0 — Future
+• Cross-app task automation
+• Multi-user family profiles
+• AR overlay mode
+• iOS port
+
+═══════════════════════════════════════════════════════════════════
+
+AURA is complete. The bridge is built.
+
+Web preview    : aura_final.html
+Native Android : aura_android_project.zip
+ReAct Agent    : aura_react_agent.py
+Documentation  : DEVELOPER_GUIDE.md
+
+Built with: Android Studio | Jetpack Compose | Kotlin | Python | GitHub Actions
